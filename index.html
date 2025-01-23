@@ -228,10 +228,10 @@
                         $( '.inform_the_user' ).classList.add( "hidden" );
                         $( '.num_of_mints' ).innerText = mints.length - errors;
                         $( '.total_public_capacity' ).innerText = sumCapacities().toLocaleString();
-                        $( '.total_in_btc' ).innerText = satsToBitcoin( sumCapacities() );
+                        $( '.total_in_btc' ).innerText = satsToBitcoin( sumCapacities() ).toLocaleString();
                         var half = Math.floor( sumCapacities() / 2 );
                         $( '.half_of_total' ).innerText = half.toLocaleString();
-                        $( '.half_in_btc' ).innerText = Number( satsToBitcoin( half ) );
+                        $( '.half_in_btc' ).innerText = Number( satsToBitcoin( half ) ).toLocaleString();
                         $( '.final_info' ).classList.remove( "hidden" );
                         if ( mints_whose_capacity_could_not_be_determined.length ) {
                             $( '.num_of_indeterminates' ).innerText = mints_whose_capacity_could_not_be_determined.length;
