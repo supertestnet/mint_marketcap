@@ -72,10 +72,10 @@
         <div class="getting_capacity hidden">
             <div class="final_info hidden">
                 <p>
-                    The public capacity of the top <span class="num_of_mints"></span> cashu mints is <span class="total_public_capacity"></span> sats
+                    The public capacity of the top <span class="num_of_mints"></span> cashu mints is <span class="total_public_capacity"></span> sats or <span class="total_in_btc"></span> btc
                 </p>
                 <p>
-                    Assuming about half of that is "outbound" capacity (i.e. funds stored on the mint), I estimate that users have collectively stored about <span class="half_of_total"></span> sats on cashu mints
+                    Assuming about half of that is "outbound" capacity (i.e. funds stored on the mint), I estimate that users have collectively stored about <span class="half_of_total"></span> sats or <span class="half_in_btc"></span> on cashu mints
                 </p>
             </div>
             <div class="indeterminates hidden">
@@ -178,6 +178,18 @@
                 num = Number( num );
                 return new Promise( resolve => setTimeout( resolve, num ) );
             }
+            var satsToBitcoin = sats => {
+                var btc = String( sats ).padStart( 8, "0" ).slice( 0,-8 ) + "." + String( sats ).padStart( 8, "0" ).slice( -8 );
+                if ( btc.endsWith( "00000" ) ) {
+                    btc = btc.substring( 0, btc.length - 5 );
+                    var i; for ( i=0; i<5; i++ ) {
+                        if ( btc.endsWith( "0" ) ) btc = btc.substring( 0, btc.length - 1 );
+                    }
+                    if ( btc.endsWith( "." ) ) btc = btc.substring( 0, btc.length - 1 );
+                    if ( !btc ) btc = 0;
+                }
+                return btc;
+            }
             var getCapacities = async () => {
                 showPage( `getting_capacity` );
                 var i; for( i=0; i<Object.keys( pubkeys ).length; i++ ) {
@@ -216,8 +228,10 @@
                         $( '.inform_the_user' ).classList.add( "hidden" );
                         $( '.num_of_mints' ).innerText = mints.length - errors;
                         $( '.total_public_capacity' ).innerText = sumCapacities().toLocaleString();
+                        $( '.total_in_btc' ).innerText = satsToBitcoin( sumCapacities() );
                         var half = Math.floor( sumCapacities() / 2 ).toLocaleString();
                         $( '.half_of_total' ).innerText = half.toLocaleString();
+                        $( '.half_in_btc' ).innerText = Number( satsToBitcoin( half ) ).toLocaleString();
                         $( '.final_info' ).classList.remove( "hidden" );
                         if ( mints_whose_capacity_could_not_be_determined.length ) {
                             $( '.num_of_indeterminates' ).innerText = mints_whose_capacity_could_not_be_determined.length;
@@ -246,6 +260,7 @@
                         li_0.getElementsByTagName( "input" )[ 0 ].checked = true;
                     } catch ( e ) {
                         errors = errors + 1;
+                        console.log( mint_name );
                         $$( `.${mint_name}` )[ 1 ].remove();
                     }
                     if ( Object.keys( pubkeys ).length + errors === mints.length ) getCapacities();
