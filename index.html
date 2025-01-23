@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, user-scalable=no">
+        <script src="https://supertestnet.github.io/bitcoin-chess/js/bolt11.js"></script>
+        <script src="https://supertestnet.github.io/blind-sig-js/blindSigJS.js"></script>
+        <script src="https://supertestnet.github.io/bankify/super_nostr.js"></script>
+        <script src="https://supertestnet.github.io/bankify/bankify.js"></script>
+        <script src="https://bundle.run/browserify-cipher@1.0.1"></script>
+        <script src="https://bundle.run/noble-secp256k1@1.2.14"></script>
+        <style>
+            * {
+                box-sizing: border-box;
+                font-size: 1.15rem;
+                font-family: Arial, sans-serif;
+            }
+            html {
+                max-width: 800px;
+                padding: 3rem 1rem;
+                margin: auto;
+                line-height: 1.25;
+                padding: 0;
+            }
+            body {
+                margin: 3rem 1rem;
+                word-wrap: break-word;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            h2 {
+                font-size: 1.5rem;
+            }
+            input {
+                line-height: 1.25;
+                width: 100%;
+                height: 1.8rem;
+                font-size: 1.15rem;
+                border: 1px solid grey;
+            }
+            .hidden {
+                display: none !important;
+            }
+            .mint {
+                display: flex;
+                align-items: center;
+            }
+            .mint input {
+                width: auto;
+                max-height: 1.5rem;
+                margin-left: 1rem;
+            }
+            @media screen and (max-width: 600px) {
+            }
+        </style>
+        <script>
+            var $ = document.querySelector.bind( document );
+            var $$ = document.querySelectorAll.bind( document );
+            var url_params = new URLSearchParams( window.location.search );
+            var url_keys = url_params.keys();
+            var $_GET = {}
+            for ( var key of url_keys ) $_GET[ key ] = url_params.get( key );
+        </script>
+    </head>
+    <body>
+        <h1>Mint Statistics</h1>
+        <div class="getting_invoice">
+            <p>Getting an invoice from each of the following mints:</p>
+            <ul class="list_of_mints"></ul>
+        </div>
+        <div class="getting_capacity hidden">
+            <div class="final_info hidden">
+                <p>
+                    The public capacity of the top <span class="num_of_mints"></span> cashu mints is <span class="total_public_capacity"></span> sats
+                </p>
+                <p>
+                    Assuming about half of that is "outbound" capacity (i.e. funds stored on the mint), I estimate that users have collectively stored about <span class="half_of_total"></span> sats on cashu mints
+                </p>
+            </div>
+            <div class="indeterminates hidden">
+                <p>
+                    Note that the capacity of the following <span class="num_of_indeterminates"></span> mints could not be determined:
+                </p>
+                <ul class="list_of_indeterminates"></ul>
+            </div>
+            <p class="inform_the_user">Getting the capacity of each of the following mints:</p>
+            <ul class="list_of_mints"></ul>
+        </div>
+        <script>
+            var showPage = page => {
+                $( '.getting_invoice' ).classList.add( "hidden" );
+                $( '.getting_capacity' ).classList.add( "hidden" );
+                $( `.${page}` ).classList.remove( "hidden" );
+            }
+            // var mints = [
+            //     "https://8333.space:3338",
+            //     "https://mint.minibits.cash/Bitcoin",
+            //     "https://stablenut.umint.cash",
+            //     "https://antifiat.cash",
+            //     "https://mint.nostrich.cc",
+            //     "https://21mint.me",
+            //     "https://mint.macadamia.cash",
+            //     "https://mint.lnvoltz.com",
+            //     "https://mint.agorist.space",
+            //     "https://mint.coinos.io",
+            //     "https://mint.0xchat.com",
+            //     "https://mint.lnwasanee.com",
+            //     "https://mint.103100.xyz",
+            //     "https://cashu.boats",
+            //     "https://mint.gwoq.com",
+            //     "https://smilemoji.cash:3338",
+            //     "https://mint.belgianbitcoinembassy.org",
+            //     "https://mint.mountainlake.io",
+            //     "https://mint.lnpay.cz",
+            //     "https://mint.data.haus",
+            //     "https://mint.nimo.cash",
+            //     "https://mint.utxo.one",
+            //     "http://lbutlh5lfggq5r7xpiwhrajdl7sxpupgagazxl65w4c5cg72wtofasad.onion:3338",
+            //     "https://mint2.nutmix.cash",
+            //     "https://mint.lnw.cash",
+            //     "https://corecashu.libretechsystems.xyz",
+            //     "https://mint.nodenebula.com",
+            //     "https://cashu.21m.lol",
+            //     "https://mint.bitcointxoko.com",
+            //     "https://mint.azzamo.net",
+            //     "https://mint.pailakapo.com",
+            //     "https://mint.westernbtc.com",
+            //     "https://mint.lnwallet.app",
+            // ];
+            var mints = [
+                "https://mint.coinos.io",
+                // "https://stablenut.umint.cash",
+                // "https://mint.nodenebula.com",
+                // "https://mint.utxo.one",
+                // "https://cashu.boats",
+                // "https://mint.nimo.cash",
+                // "https://mint.minibits.cash/Bitcoin",
+                // "https://mint.lnpay.cz",
+                // "https://mint.mountainlake.io",
+                // "https://antifiat.cash",
+                // "https://mint.lnwasanee.com",
+                // "https://mint.0xchat.com",
+                // "https://mint.lnw.cash",
+                // "https://mint.macadamia.cash",
+                // "https://8333.space:3338",
+                // "https://mint.gwoq.com",
+                // "https://mint.data.haus",
+                // "https://cashu.21m.lol",
+                // "https://mint.bitcointxoko.com",
+                // "https://mint.belgianbitcoinembassy.org",
+                // "https://21mint.me",
+                // "https://mint.lnvoltz.com",
+                // "https://mint.103100.xyz",
+                // "https://mint.lnwallet.app",
+                // "https://mint.westernbtc.com",
+                // "https://mint.azzamo.net",
+            ];
+            var errors = 0;
+            var mints_whose_capacity_could_not_be_determined = [];
+            var pubkeys = {}
+            var capacities = {}
+            var mint_names = {}
+            var getMintPubkey = async mint => {
+                var invoice_info = await bankify.getLNInvoice( mint, 500 );
+                var invoice_obj = bolt11.decode( invoice_info.request );
+                return invoice_obj.payeeNodeKey;
+            }
+            var sumCapacities = () => {
+                var total = 0;
+                Object.keys( capacities ).forEach( mint => {
+                    total = total + capacities[ mint ].public_capacity_for_this_mint;
+                });
+                return total;
+            }
+            var waitSomeSeconds = num => {
+                var num = num.toString() + "000";
+                num = Number( num );
+                return new Promise( resolve => setTimeout( resolve, num ) );
+            }
+            var getCapacities = async () => {
+                showPage( `getting_capacity` );
+                var i; for( i=0; i<Object.keys( pubkeys ).length; i++ ) {
+                    var mint = Object.keys( pubkeys )[ i ];
+                    var mint_name = mint_names[ mint ];
+                    try {
+                        var public_capacity_for_this_mint = 0;
+                        console.log( `getting info about ${mint} -- ${i+1} out of ${Object.keys( pubkeys ).length}` );
+                        var pubkey = pubkeys[ mint ];
+                        var url = `https://proxy.cors.sh/https://api.amboss.space/graphql`;
+                        var options = {
+                          method: 'POST',
+                          url,
+                          headers: {
+                            'Content-Type': 'application/json'
+                          },
+                          body: JSON.stringify({
+                            query: `query Query {getNodeChannelCapacities(pubkey: "${pubkey}"){peer_pubkey, capacity}}`,
+                          }),
+                        }
+                        var data = await fetch( url, options );
+                        var json = await data.json();
+                        json.data.getNodeChannelCapacities.forEach( item => {
+                            public_capacity_for_this_mint = public_capacity_for_this_mint + Number( item.capacity );
+                        });
+                        $( `.${mint_name} .mint_capacity` ).innerHTML = `&nbsp;- Capacity: ${public_capacity_for_this_mint.toLocaleString()} sats`;
+                        capacities[ mint ] = {public_capacity_for_this_mint, pubkey, data: json.data.getNodeChannelCapacities}
+                        await waitSomeSeconds( 2 );
+                    } catch ( e ) {
+                        console.log( `error re:`, mint_name );
+                        $( `.${mint_name} .mint_capacity` ).innerHTML = `&nbsp;- Capacity: could not be determined`;
+                        mints_whose_capacity_could_not_be_determined.push( mint );
+                    }
+                    if ( i === Object.keys( pubkeys ).length - 1 ) {
+                        console.log( 'done!' );
+                        $( '.inform_the_user' ).classList.add( "hidden" );
+                        $( '.num_of_mints' ).innerText = mints.length - errors;
+                        $( '.total_public_capacity' ).innerText = sumCapacities().toLocaleString();
+                        var half = Math.floor( sumCapacities() / 2 ).toLocaleString();
+                        $( '.half_of_total' ).innerText = half.toLocaleString();
+                        $( '.final_info' ).classList.remove( "hidden" );
+                        if ( mints_whose_capacity_could_not_be_determined.length ) {
+                            $( '.num_of_indeterminates' ).innerText = mints_whose_capacity_could_not_be_determined.length;
+                            mints_whose_capacity_could_not_be_determined.forEach( indeterminate => {
+                                var li = document.createElement( "li" );
+                                li.innerHTML = indeterminate;
+                                $( '.list_of_indeterminates' ).append( li );
+                            });
+                        }
+                    }
+                }
+            }
+            (async()=>{
+                mints.forEach( async ( mint, index ) => {
+                    var mint_name = mint_names[ mint ];
+                    mint_names[ mint ] = `mint_${index}`;
+                    var li_0 = document.createElement( "li" );
+                    li_0.innerHTML = `<div class="mint mint_${index}"><span>${mint}</span><input type="checkbox" disabled></div>`;
+                    $$( '.list_of_mints' )[ 0 ].append( li_0 );
+                    var li_1 = document.createElement( "li" );
+                    li_1.innerHTML = `<div class="mint mint_${index}"><span>${mint}</span><span class="mint_capacity">&nbsp;- Capacity: loading...</span>`;
+                    $$( '.list_of_mints' )[ 1 ].append( li_1 );
+                    try {
+                        var pubkey = await getMintPubkey( mint );
+                        pubkeys[ mint ] = pubkey;
+                        li_0.getElementsByTagName( "input" )[ 0 ].checked = true;
+                    } catch ( e ) {
+                        errors = errors + 1;
+                        $$( `.${mint_name}` )[ 1 ].remove();
+                    }
+                    if ( Object.keys( pubkeys ).length + errors === mints.length ) getCapacities();
+                });
+            })();
+        </script>
+    </body>
+</html>
