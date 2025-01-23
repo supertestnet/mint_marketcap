@@ -1,2 +1,2 @@
-# mint_marketcap
+# Mint Marketcap
 A stats website that tries to guess how much money bitcoiners store on ecash mints
