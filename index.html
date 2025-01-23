@@ -231,7 +231,7 @@
                         $( '.total_in_btc' ).innerText = satsToBitcoin( sumCapacities() );
                         var half = Math.floor( sumCapacities() / 2 );
                         $( '.half_of_total' ).innerText = half.toLocaleString();
-                        $( '.half_in_btc' ).innerText = Number( satsToBitcoin( half ) ).toLocaleString();
+                        $( '.half_in_btc' ).innerText = Number( satsToBitcoin( half ) );
                         $( '.final_info' ).classList.remove( "hidden" );
                         if ( mints_whose_capacity_could_not_be_determined.length ) {
                             $( '.num_of_indeterminates' ).innerText = mints_whose_capacity_could_not_be_determined.length;
